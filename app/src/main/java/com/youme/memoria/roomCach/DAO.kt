@@ -97,8 +97,8 @@ interface AlbumDao{
     @Query("SELECT * FROM album ")
     fun getAllAlbums(): List<AlbumEntity>
 
-    @Query("DELETE FROM album_photo WHERE uri IN (:photoUris)")
-    suspend fun removeAlbumPhotos(photoUris: List<String>)
+    @Query("DELETE FROM album_photo WHERE uri IN (:photoUris) and albumId=:albumId")
+    suspend fun removeAlbumPhotos(photoUris: List<String>,albumId: String)
 
 
 
@@ -139,6 +139,10 @@ interface SearchHistoryDao{
     @Query("SELECT * FROM searchHistory order by pinned DESC , timestamp DESC ")
     fun getSearchHistroy(): Flow<List<SearchHistoryEntity>>
 
+
+
+    @Query("select pinned from searchHistory where `query`=:query")
+    fun getPinnedStatus(query: String): Boolean?
 
 
 

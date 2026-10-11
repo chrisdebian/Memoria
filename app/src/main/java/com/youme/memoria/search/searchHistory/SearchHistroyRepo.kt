@@ -11,10 +11,11 @@ class SearchHistroyRepo(context: Context) {
 
 
 
-    suspend fun addToHistory(query:String){
+    suspend fun addToHistory(query:String,isPinned: Boolean){
         if (query.isEmpty()) return
-        dao.insert(SearchHistoryEntity(query=query, timestamp =  System.currentTimeMillis()))
+        dao.insert(SearchHistoryEntity(query=query, timestamp =  System.currentTimeMillis(), pinned =isPinned))
     }
+
 
     suspend fun setPinned(query: String,pinned: Boolean) = dao.setPinned(query,pinned)
 

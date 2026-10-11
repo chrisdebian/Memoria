@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Query
 import com.youme.inkdex.roomCach.PhotosDatabase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -23,8 +24,8 @@ class SearchHistroyViewModel(application : Application) : AndroidViewModel(appli
 
 
     fun addToHistroy(query: String){
-        viewModelScope.launch {
-            searchHistroyRepo.addToHistory(query)
+        viewModelScope.launch(Dispatchers.IO) {
+            searchHistroyRepo.addToHistory(query,dao.getPinnedStatus(query)?:false)
         }
     }
 

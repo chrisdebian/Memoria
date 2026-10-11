@@ -218,7 +218,7 @@ class searchActivity : AppCompatActivity() {
             when(item.itemId){
                 R.id.image_search->{ pickedImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))}
                 R.id.filter->{FilterBottomFrag().show(supportFragmentManager,"") }
-                R.id.visual_search->{ VisualConceptBottomFrag().show(supportFragmentManager,"") }
+                //R.id.visual_search->{ VisualConceptBottomFrag().show(supportFragmentManager,"") }
                 else -> false
             }
             true

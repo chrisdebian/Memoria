@@ -61,7 +61,7 @@ class AlbumViewModel(application: Application): AndroidViewModel(application){
                     dao.updateCentroidEmbedding(albumId, ByteArray(0))
                 }
             }
-            dao.removeAlbumPhotos(photos)
+            dao.removeAlbumPhotos(photos,albumId?:"")
             Adapter.removeSelected()
 
         }
