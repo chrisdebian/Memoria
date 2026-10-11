@@ -34,6 +34,9 @@ class SearchViewModuel(application: Application): AndroidViewModel(application) 
     val weightsSearch = MutableStateFlow<ByteArray>(ByteArray(0))
     val searchfilters  = MutableStateFlow<SearchFilters>(SearchFilters(null,null,emptyList(),null))
 
+
+
+
     val results = combine(searchfilters, searchQuery.debounce(100),searchImage,weightsSearch) { filters, query,image,_ -> filters to (query to image ) }
         .distinctUntilChanged()
         .flatMapLatest { (filters, query) ->

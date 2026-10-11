@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -30,8 +31,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.paging.PagingData
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import androidx.room.util.query
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.appbar.AppBarLayout
@@ -44,11 +47,14 @@ import com.google.android.material.search.SearchBar
 import com.google.android.material.search.SearchView
 import com.google.android.material.textfield.TextInputEditText
 import com.yalantis.ucrop.UCrop
+import com.youme.memoria.Album.deleteAlert
 import com.youme.memoria.ImageLoading.ImagePagingAdapter
 import com.youme.memoria.ImageLoading.ImageUriItem
 import com.youme.memoria.PhotoRepository
 import com.youme.memoria.R
 import com.youme.memoria.imageViewer.imageViewerActivity
+import com.youme.memoria.search.searchHistory.SearchHistroyAdapter
+import com.youme.memoria.search.searchHistory.SearchHistroyViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -58,6 +64,9 @@ import java.io.File
 class searchActivity : AppCompatActivity() {
     private lateinit var Adapter: ImagePagingAdapter
     private val searchViewModuel : SearchViewModuel by viewModels()
+    private val searchHistroyViewModuel : SearchHistroyViewModel by viewModels()
+    private lateinit var historyAdapter: SearchHistroyAdapter
+
     private val cropLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             when (result.resultCode) {
@@ -116,6 +125,7 @@ class searchActivity : AppCompatActivity() {
         setupFilterObserver()
         setupImageSearch()
         setupTopBar()
+        setupSearchHistory()
         handleShareIntent(intent)
 
     }
@@ -267,13 +277,60 @@ class searchActivity : AppCompatActivity() {
 
         searchView.getEditText().setOnEditorActionListener { v, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                searchViewModuel.setSearchQuery(searchView.getEditText().text.toString())
-                searchBar.setText(searchView.getEditText().text.toString())
+                val query = searchView.getEditText().text.toString()
+                searchViewModuel.setSearchQuery(query)
+                searchHistroyViewModuel.addToHistroy(query)
+                searchBar.setText(query)
                 searchView.hide()
                 true
             } else false
         }
 
+    }
+
+    private fun setupSearchHistory(){
+        val searchBar = findViewById<SearchBar>(R.id.search_bar)
+        val searchView = findViewById<SearchView>(R.id.search_view)
+        val clearHistoryButton = findViewById<Button>(R.id.button19)
+
+
+        historyAdapter = SearchHistroyAdapter(
+            onPinnedClicked = { query,isPineed ->
+                searchHistroyViewModuel.setPinned(query,!isPineed)
+            },
+            onClick = {query->
+                searchViewModuel.setSearchQuery(query)
+                searchHistroyViewModuel.addToHistroy(query)
+                searchBar.setText(query)
+                searchView.hide()
+            },
+            onLongClick = { query->
+                deleteAlert(this@searchActivity,"Delete Search Item","Are you sure you want to delete \"$query\" from your search history? This action cannot be undone."){
+                    searchHistroyViewModuel.deleteHistoryItem(query)
+                }
+            }
+        )
+
+
+        val recyclerView = findViewById<RecyclerView>(R.id.historyRec)
+        recyclerView.apply {
+            adapter  = historyAdapter
+            layoutManager= LinearLayoutManager(this@searchActivity, LinearLayoutManager.VERTICAL,false)
+        }
+
+        clearHistoryButton.setOnClickListener {
+            deleteAlert(this@searchActivity,"Clear Search History","Are you sure you want to delete all your search history? This action cannot be undone."){
+                searchHistroyViewModuel.deleteHistory()
+            }
+        }
+
+
+
+        lifecycleScope.launch {
+            searchHistroyViewModuel.getSearchHistory().collectLatest {history->
+                historyAdapter.submitData(history)
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -288,6 +345,7 @@ class searchActivity : AppCompatActivity() {
 
         }
     }
+
     private fun setupPadding(){
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.linearLayout2)) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

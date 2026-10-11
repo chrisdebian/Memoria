@@ -29,3 +29,15 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_album_photo_uri` ON `album_photo` (`uri`)")
     }
 }
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `searchHistory` (
+                `query` TEXT NOT NULL,
+                `pinned` INTEGER NOT NULL,
+                `timestamp` INTEGER NOT NULL,
+                PRIMARY KEY(`query`)
+            )
+        """)
+    }
+}

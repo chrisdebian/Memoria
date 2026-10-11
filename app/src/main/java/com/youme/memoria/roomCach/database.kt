@@ -6,11 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.youme.memoria.roomCach.MIGRATION_3_4
+import com.youme.memoria.roomCach.MIGRATION_4_5
 
-@Database(entities = [PhotoEntity::class, AlbumPhotoEntity::class, AlbumEntity::class], version = 4)
+@Database(entities = [PhotoEntity::class, AlbumPhotoEntity::class, AlbumEntity::class,SearchHistoryEntity::class], version = 5)
 abstract class PhotosDatabase : RoomDatabase() {
     abstract fun photoDao(): PhotoDao
     abstract fun AlbumDao(): AlbumDao
+    abstract fun SearchHistoryDao(): SearchHistoryDao
     companion object {
         @Volatile private var INSTANCE: PhotosDatabase? = null
 
@@ -20,7 +22,7 @@ abstract class PhotosDatabase : RoomDatabase() {
                     context.applicationContext,
                     PhotosDatabase::class.java,
                     "photo_db"
-                ).addMigrations(MIGRATION_3_4).build().also { INSTANCE = it }
+                ).addMigrations(MIGRATION_3_4, MIGRATION_4_5).build().also { INSTANCE = it }
             }
         }
     }

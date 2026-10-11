@@ -129,6 +129,29 @@ interface AlbumDao{
     fun getAlbumsWithPhotos(): Flow<List<AlbumWithPhotos>>
 
 }
+
+@Dao
+interface SearchHistoryDao{
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(item : SearchHistoryEntity)
+
+    @Query("SELECT * FROM searchHistory order by pinned DESC , timestamp DESC ")
+    fun getSearchHistroy(): Flow<List<SearchHistoryEntity>>
+
+
+
+
+    @Query("update searchHistory set pinned =:pinned where `query`=:query  ")
+    suspend fun setPinned(query: String,pinned: Boolean)
+
+    @Query("delete from searchHistory")
+    suspend fun deleteAll()
+    @Query("delete from searchHistory where `query`=:query")
+    suspend fun deleteItem(query: String)
+
+
+}
 data class AlbumsList(
     val albumId: String,
     val name : String,

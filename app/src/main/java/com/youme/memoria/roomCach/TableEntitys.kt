@@ -7,6 +7,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.sql.Timestamp
 
 @Entity(tableName = "photo")
 data class PhotoEntity(
@@ -43,6 +44,16 @@ data class AlbumEntity(
     val name: String,
     val centroidEmbedding: ByteArray,
     val autoUpdate : Boolean = true
+)
+
+
+
+@Entity(tableName = "searchHistory")
+data class SearchHistoryEntity(
+    @PrimaryKey
+    val query: String="",
+    val pinned : Boolean=false,
+    val timestamp: Long
 )
 
 
