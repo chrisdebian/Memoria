@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or general feedback
+    url: https://github.com/raslenabb12/Memoria/discussions
+    about: For questions, ideas, and showing off your results, use Discussions instead of Issues.

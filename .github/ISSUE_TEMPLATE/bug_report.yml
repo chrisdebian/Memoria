@@ -1,0 +1,84 @@
+name: Bug report
+description: Something crashed, froze, or didn't work as expected
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. The more detail you can give, the faster I can find the cause.
+        A screen recording or logcat output helps a lot.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected to happen instead.
+      placeholder: "When I tap Start Indexing it stops at 41 images and the app closes."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the app
+        2. Tap ...
+        3. See the problem
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: Memoria version
+      description: Settings > Version
+      placeholder: "v1.6.0-beta"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-type
+    attributes:
+      label: How did you install this version?
+      options:
+        - Fresh install
+        - Updated over an older version
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: upgraded-from
+    attributes:
+      label: If you updated, which version were you on before?
+      placeholder: "v1.5.0-beta"
+
+  - type: input
+    id: device
+    attributes:
+      label: Device model and Android version
+      placeholder: "Sony Xperia 1 V, Android 14"
+    validations:
+      required: true
+
+  - type: input
+    id: ram
+    attributes:
+      label: Device RAM
+      placeholder: "8 GB"
+
+  - type: input
+    id: library-size
+    attributes:
+      label: Roughly how many photos are in your library?
+      description: Large libraries (10k+) can behave differently, so this helps a lot.
+      placeholder: "4,000"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, screenshots, or screen recording
+      description: Drag files into this box. If you can run `adb logcat` while reproducing the problem, paste the relevant part here.
+      render: shell
