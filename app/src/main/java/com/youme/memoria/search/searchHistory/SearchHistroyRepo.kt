@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.TimeUtils
 import com.youme.inkdex.roomCach.PhotosDatabase
 import com.youme.inkdex.roomCach.SearchHistoryEntity
+import kotlinx.coroutines.flow.Flow
 import java.sql.Timestamp
 
 class SearchHistroyRepo(context: Context) {
@@ -11,9 +12,9 @@ class SearchHistroyRepo(context: Context) {
 
 
 
-    suspend fun addToHistory(query:String,isPinned: Boolean){
+    suspend fun addToHistory(query:String){
         if (query.isEmpty()) return
-        dao.insert(SearchHistoryEntity(query=query, timestamp =  System.currentTimeMillis(), pinned =isPinned))
+        dao.insert(SearchHistoryEntity(query=query, timestamp =  System.currentTimeMillis(), pinned =dao.getPinnedStatus(query)?:false))
     }
 
 
@@ -21,4 +22,10 @@ class SearchHistroyRepo(context: Context) {
 
     suspend fun deleteHistory() = dao.deleteAll()
     suspend fun deleteHistroyItem(query: String) = dao.deleteItem(query)
+
+
+
+    fun getSearchHistory(): Flow<List<SearchHistoryEntity>> {
+        return dao.getSearchHistroy()
+    }
 }

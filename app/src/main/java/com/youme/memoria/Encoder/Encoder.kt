@@ -21,12 +21,9 @@ class MemoriaEncoder(private val context: Context) {
     private var imageNnDelegate: NnApiDelegate? = null
     private var textNnDelegate: NnApiDelegate? = null
 
-    private lateinit var embeddingBuffer: MappedByteBuffer
-
 
     private lateinit var imageInterpreter: Interpreter
     private lateinit var textInterpreter: Interpreter
-    private lateinit var embeddingTable: Array<FloatArray>
     private val modelMutex = Mutex()
 
     companion object {
@@ -56,23 +53,38 @@ class MemoriaEncoder(private val context: Context) {
             useXNNPACK=true
         }
 
-        textInterpreter = Interpreter(loadModel("mobileclip_s0_text_int8.tflite"), options)
+        textInterpreter = Interpreter(loadModel("text_encoder_int8w.tflite"), options)
 
-        CLIPTokenizer.init(context)
+       // CLIPTokenizer.init(context)
+        SpmTokenizer.init(context)
     }
 
     private val tokenBuffer: ByteBuffer by lazy {
         ByteBuffer.allocateDirect(CONTEXT_LENGTH * 4).order(ByteOrder.nativeOrder())
     }
+    private val eosPosBuffer: ByteBuffer by lazy {
+        ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder())
+    }
     suspend fun encodeText(query: String): FloatArray = modelMutex.withLock {
-        val tokens = CLIPTokenizer.tokenize(query)
+        val tokens = SpmTokenizer.encode(query)
+        val eosPos = tokens.indexOf(SpmTokenizer.eosId)
+
         tokenBuffer.clear()
-        for (i in 0 until CONTEXT_LENGTH) tokenBuffer.putInt(tokens[i].toInt())
+        for (i in 0 until CONTEXT_LENGTH) tokenBuffer.putInt(tokens[i])
         tokenBuffer.rewind()
 
+        eosPosBuffer.clear()
+        eosPosBuffer.putInt(eosPos)
+        eosPosBuffer.rewind()
+
         val out = Array(1) { FloatArray(EMBED_DIM) }
-        textInterpreter.run(tokenBuffer, out)
-        l2Normalize(out[0])
+
+        val inputs = arrayOf<Any>(tokenBuffer, eosPosBuffer)
+        val outputs = mutableMapOf<Int, Any>(0 to out)
+
+        textInterpreter.runForMultipleInputsOutputs(inputs, outputs)
+
+        return@withLock l2Normalize(out[0])
     }
     private val imageInputBuffer: ByteBuffer by lazy {
         ByteBuffer.allocateDirect(1 * 3 * IMAGE_SIZE * IMAGE_SIZE * 4).order(ByteOrder.nativeOrder())
@@ -113,10 +125,6 @@ class MemoriaEncoder(private val context: Context) {
 
 
     }
-    private val textInputBuffer: ByteBuffer by lazy {
-        ByteBuffer.allocateDirect(1 * CONTEXT_LENGTH * EMBED_DIM * 4).order(ByteOrder.nativeOrder())
-    }
-
     fun cosineSimilarity(a: FloatArray, b: FloatArray): Float {
         var dotProduct = 0f
         for (i in a.indices) {
@@ -183,7 +191,6 @@ class MemoriaEncoder(private val context: Context) {
         if (::textInterpreter.isInitialized) textInterpreter.close()
         textNnDelegate?.close()
         textNnDelegate = null
-        embeddingTable = emptyArray()
     }
 
     fun close() {

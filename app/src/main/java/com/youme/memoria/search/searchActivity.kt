@@ -327,7 +327,7 @@ class searchActivity : AppCompatActivity() {
 
 
         lifecycleScope.launch {
-            searchHistroyViewModuel.getSearchHistory().collectLatest {history->
+            searchHistroyViewModuel.searchHistory.collectLatest {history->
                 historyAdapter.submitData(history)
             }
         }

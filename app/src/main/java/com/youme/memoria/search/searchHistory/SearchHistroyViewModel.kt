@@ -13,19 +13,18 @@ import kotlinx.coroutines.launch
 
 class SearchHistroyViewModel(application : Application) : AndroidViewModel(application) {
 
-    private val dao = PhotosDatabase.getInstance(application).SearchHistoryDao()
-
-
-    fun getSearchHistory() = dao.getSearchHistroy()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
 
     private val searchHistroyRepo  = SearchHistroyRepo(application)
 
+    val searchHistory = searchHistroyRepo.getSearchHistory()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+
 
     fun addToHistroy(query: String){
         viewModelScope.launch(Dispatchers.IO) {
-            searchHistroyRepo.addToHistory(query,dao.getPinnedStatus(query)?:false)
+            searchHistroyRepo.addToHistory(query)
         }
     }
 
