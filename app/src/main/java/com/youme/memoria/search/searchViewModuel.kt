@@ -10,6 +10,7 @@ import androidx.room.Query
 import com.youme.inkdex.roomCach.PhotoEntity
 import com.youme.memoria.PhotoRepository
 import com.youme.memoria.SearchFilters
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
@@ -39,21 +40,15 @@ class SearchViewModuel(application: Application): AndroidViewModel(application) 
 
     val results = combine(searchfilters, searchQuery.debounce(100),searchImage,weightsSearch) { filters, query,image,_ -> filters to (query to image ) }
         .distinctUntilChanged()
-        .flatMapLatest { (filters, query) ->
-            flow {
-                emit(SearchState.Loading)
-                repo.ensureTextModelInitialized()
-                val allImages = repo.indexedImagesFiltered(filters)
-                val res = if (query.second==null) {
-                    repo.search(query.first, allImages,filters.confidence)
-                }else{
-                    repo.searchByImage(application,query.second!!,allImages)
-                }
-                emit(SearchState.Success(res))
-                }
-            }.catch { e ->
-                emit(SearchState.Error(e.message ?: "search failed"))
-            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SearchState.Loading)
+        .toSearchStates { (filters, query) ->
+            repo.ensureTextModelInitialized()
+            val allImages = repo.indexedImagesFiltered(filters)
+            if (query.second==null) {
+                repo.search(query.first, allImages,filters.confidence)
+            }else{
+                repo.searchByImage(application,query.second!!,allImages)
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SearchState.Loading)
 
     fun setSearchQuery(query: String){
         searchQuery.value = query
@@ -63,5 +58,18 @@ class SearchViewModuel(application: Application): AndroidViewModel(application) 
     }
     fun setSearchImage(image: Uri?){
         searchImage.value = image
+    }
+}
+
+// Errors are caught per query, inside flatMapLatest, so one failed search
+// doesn't end the stream and later searches still run.
+internal fun <T> Flow<T>.toSearchStates(
+    search: suspend (T) -> List<Pair<PhotoEntity, Float>>
+): Flow<SearchState> = flatMapLatest { input ->
+    flow<SearchState> {
+        emit(SearchState.Loading)
+        emit(SearchState.Success(search(input)))
+    }.catch { e ->
+        emit(SearchState.Error(e.message ?: "search failed"))
     }
 }
