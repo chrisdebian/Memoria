@@ -278,6 +278,10 @@ class searchActivity : AppCompatActivity() {
         searchView.getEditText().setOnEditorActionListener { v, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 val query = searchView.getEditText().text.toString()
+                lifecycleScope.launch {
+                    Adapter.submitData(PagingData.from(emptyList()))
+                }
+
                 searchViewModuel.setSearchQuery(query)
                 searchHistroyViewModuel.addToHistroy(query)
                 searchBar.setText(query)

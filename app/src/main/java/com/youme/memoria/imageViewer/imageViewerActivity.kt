@@ -1,13 +1,17 @@
 package com.youme.memoria.imageViewer
 
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.media.Image
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.view.ViewCompat
@@ -16,6 +20,10 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.PagingData
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.bottomappbar.BottomAppBar
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.yalantis.ucrop.UCrop
+import com.youme.memoria.Album.deleteAlert
 import com.youme.memoria.Gallery.GalleryRepository
 import com.youme.memoria.Gallery.GalleryViewModel
 import com.youme.memoria.R
@@ -23,8 +31,11 @@ import com.youme.memoria.search.SearchResultCache
 import com.youme.memoria.search.searchActivity
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.io.File
 
 class imageViewerActivity : AppCompatActivity(){
+
+
     private lateinit var Adatper : ImagePagerAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,29 +50,13 @@ class imageViewerActivity : AppCompatActivity(){
         setupViewPager()
         setupUi()
         setupPadding()
+        setupBottomAppBar()
     }
 
     private fun setupUi(){
         val viewpager2= findViewById<ViewPager2>(R.id.viewpager)
-        val isFromSearch = intent.getBooleanExtra("from_search",false)
-        val openAppGalleryButton = findViewById<Button>(R.id.button2)
 
-        val matchContextCard = findViewById<CardView>(R.id.cardView2)
-        val matchContextText = findViewById<TextView>(R.id.textView3)
-//        if (isFromSearch){
-//            matchContextCard.isVisible=true
-//            matchContextText.text = "Matched: '${intent.getStringExtra("matchContext")}'"
-//        }
 
-        openAppGalleryButton.setOnClickListener {
-            val currentItem = Adatper.peek(viewpager2.currentItem)
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(currentItem?.uri, "image/*")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-
-            startActivity(intent)
-        }
         findViewById<ImageButton>(R.id.imageButton7).setOnClickListener {
             val intent = Intent(this@imageViewerActivity, searchActivity::class.java)
             intent.putExtra("uri",Adatper.peek(viewpager2.currentItem)?.uri.toString())
@@ -72,7 +67,6 @@ class imageViewerActivity : AppCompatActivity(){
     private fun setupViewPager(){
 
         val viewpager2= findViewById<ViewPager2>(R.id.viewpager)
-        val viewModel = GalleryViewModel(GalleryRepository(contentResolver))
 
         viewpager2.adapter = Adatper
 
@@ -105,6 +99,43 @@ class imageViewerActivity : AppCompatActivity(){
         }
 
 
+    }
+
+
+    private fun setupBottomAppBar(){
+        val viewpager2= findViewById<ViewPager2>(R.id.viewpager)
+        val bottomBar  = findViewById<BottomAppBar>(R.id.bottomAppBar)
+        val fabButton  = findViewById<FloatingActionButton>(R.id.openImage)
+        fabButton.setOnClickListener {
+            val currentItem = Adatper.peek(viewpager2.currentItem)
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(currentItem?.uri, "image/*")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(intent)
+        }
+
+
+        bottomBar.setOnMenuItemClickListener { item->
+            val imageUri = Adatper.peek(viewpager2.currentItem)?.uri
+            when(item.itemId){
+                R.id.share->{
+                    imageUri?.let{  shareImage(it)}
+                    true
+                }
+                else -> false
+            }
+
+        }
+    }
+    fun shareImage(imageUri: Uri) {
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "image/*"
+            putExtra(Intent.EXTRA_STREAM, imageUri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        startActivity(Intent.createChooser(shareIntent, "Share image"))
     }
     private fun setupPadding(){
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, insets ->

@@ -28,7 +28,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.progressindicator.LinearProgressIndicator
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.youme.memoria.settings.FoldersManager.FoldersManager
 
 class SettingsFragment : Fragment(R.layout.settings_layout) {
@@ -37,11 +39,12 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupGeneralSettings()
+        setupFolders()
         setupIndexingUi()
         setupUI()
         setUpAppVersion()
         openRepo()
-        setupFolders()
     }
     private fun setupUI(){
         val dBSizeText = requireView().findViewById<TextView>(R.id.db_size)
@@ -217,7 +220,6 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
                     indexingViewModel.getBatteryTemperature()
                 }
 
-
                 launch {
                     indexingViewModel.folderPrefs.selectedBuckets.collectLatest { selectedFolders->
                         indexingViewModel.scanGallery()
@@ -227,6 +229,21 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
                         }
                     }
                 }
+            }
+        }
+    }
+    private fun setupGeneralSettings(){
+        val indicatorSwitch = requireView().findViewById<MaterialSwitch>(R.id.indictorSwitch)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
+                SettingsPrefs.getIndicatorStatus(requireContext()).collectLatest {status->
+                    indicatorSwitch.isChecked = status
+                }
+            }
+        }
+        indicatorSwitch.setOnCheckedChangeListener { _, bool ->
+            viewLifecycleOwner.lifecycleScope.launch {
+                SettingsPrefs.setIndicatorStatus(requireContext(),bool)
             }
         }
     }

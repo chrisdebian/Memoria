@@ -34,6 +34,7 @@ import com.youme.memoria.PhotoRepository
 import com.youme.memoria.R
 import com.youme.memoria.imageViewer.imageViewerActivity
 import com.youme.memoria.search.searchActivity
+import com.youme.memoria.settings.SettingsPrefs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -125,7 +126,7 @@ class GalleryFragement  : Fragment(R.layout.gallery_layout){
 
         collapseButton.setOnClickListener {
             animateIndicator(largeIndicatorBox,smallIndicatorBox)
-            toolbar.title=""
+
         }
         smallIndicatorBox.setOnClickListener {
             animateIndicator(smallIndicatorBox,largeIndicatorBox,toolbar)
@@ -136,7 +137,17 @@ class GalleryFragement  : Fragment(R.layout.gallery_layout){
 
 
 
+
         viewLifecycleOwner.lifecycleScope.launch {
+            launch {
+                SettingsPrefs.getIndicatorStatus(requireContext()).collectLatest { status->
+                    largeIndicatorBox.isVisible=!status
+                    smallIndicatorBox.isVisible=status
+                    toolbar.title= if (status) "" else "Memoria"
+                }
+            }
+
+
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
                 indexingViewModel.state.collectLatest {state->
                     when(state){
