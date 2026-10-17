@@ -46,25 +46,75 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/materialDivider" />
 
-    <com.google.android.material.slider.Slider
-        android:id="@+id/rangeSlider"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:id="@+id/linearLayout5"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="-5dp"
-        android:stepSize="0.05"
-        android:value="0.15"
-        android:valueFrom="0"
-        android:valueTo="0.3"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout4" />
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout4">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/presetGroup"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipLoose"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:fontFamily="@font/hanken_grotesk"
+                android:text="Loose"
+                android:textStyle="bold"
+                app:checkedIcon="@drawable/baseline_check_24"
+                app:checkedIconEnabled="true"
+                app:chipBackgroundColor="#52521D"
+                app:chipStrokeWidth="0dp"
+                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Large" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipBalanced"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:checked="true"
+                android:fontFamily="@font/hanken_grotesk"
+                android:text="Balanced"
+                android:textStyle="bold"
+                app:checkedIcon="@drawable/baseline_check_24"
+                app:checkedIconEnabled="true"
+                app:chipBackgroundColor="#366A31"
+                app:chipStrokeWidth="0dp"
+                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Large" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipStrict"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:fontFamily="@font/hanken_grotesk"
+                android:text="Strict"
+                android:textStyle="bold"
+                app:checkedIcon="@drawable/baseline_check_24"
+                app:checkedIconEnabled="true"
+                app:chipBackgroundColor="#4B1616"
+                app:chipStrokeWidth="0dp"
+                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Large" />
+        </com.google.android.material.chip.ChipGroup>
+
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/linearLayout4"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
@@ -89,30 +139,8 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:fontFamily="@font/jetbrains_mono"
-                android:text="%50"
-                android:textColor="@android:color/black"
-                app:chipBackgroundColor="@color/primary_80"
-                app:chipStrokeWidth="0dp"
-                app:layout_constraintBottom_toBottomOf="@+id/textView15"
-                app:layout_constraintStart_toEndOf="@+id/textView15"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0"
-                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <Button
-            android:id="@+id/button8"
-            style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:paddingBottom="5dp"
-            android:text="Reset" />
     </LinearLayout>
 
     <LinearLayout
@@ -179,11 +207,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
         android:text="Folders"
         android:textColor="@color/primary_90"
         android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rangeSlider" />
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout5" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rec"

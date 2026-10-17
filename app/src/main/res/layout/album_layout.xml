@@ -14,9 +14,10 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:navigationIcon="@drawable/outline_photo_album_24"
+        app:navigationIconTint="@android:color/white"
         app:title="Album"
-        app:titleTextColor="@android:color/white" >
+        app:titleCentered="true"
+        app:titleTextColor="@android:color/white">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -102,9 +103,11 @@
 
         <ImageView
             android:id="@+id/imageView17"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:srcCompat="@drawable/outline_photo_album_24" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:tint="@color/primary_90"
+            app:srcCompat="@drawable/albums_outline_icon_com" />
 
         <TextView
             android:id="@+id/textView38"
@@ -120,7 +123,7 @@
 
         <TextView
             android:id="@+id/textView39"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Create one from your search results" />
     </LinearLayout>

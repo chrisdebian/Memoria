@@ -13,6 +13,7 @@ import com.youme.inkdex.roomCach.toByteArray
 import com.youme.inkdex.roomCach.toFloatArray
 import com.youme.memoria.Album.AlbumViewer.AlbumViewerAdapter
 import com.youme.memoria.PhotoRepository
+import com.youme.memoria.Preset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -86,7 +87,7 @@ class AlbumViewModel(application: Application): AndroidViewModel(application){
     private fun updateEmbeddingsByNameSearch(albumName:String,albumId: String){
         viewModelScope.launch {
             photoRepo.initializeTextModel()
-            val photosList = photoRepo.search(albumName,photoDao.getAll(),0.20f)
+            val photosList = photoRepo.search(albumName,photoDao.getAll(), Preset.BALANCED.score)
             albumRepo.addPhotosToAlbum(photosList.map { AlbumPhotoEntity(albumId,it.first.uri) })
             dao.updateCentroidEmbedding(albumId,albumRepo.computeCentroid(photosList.map { it.first.embedding.toFloatArray() }).toByteArray())
         }

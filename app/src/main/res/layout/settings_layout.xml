@@ -58,8 +58,9 @@
                     <ImageView
                         android:id="@+id/imageView2"
                         android:layout_width="40dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="30dp"
                         android:layout_gravity="center"
+                        android:tint="@color/primary_90"
                         app:srcCompat="@drawable/baseline_device_thermostat_24" />
 
                     <LinearLayout
@@ -208,7 +209,7 @@
                                 android:textColor="@android:color/white"
                                 app:backgroundTint="@color/button"
                                 app:cornerRadius="22dp"
-                                app:icon="@drawable/baseline_pause_24"
+                                app:icon="@drawable/pause_icon_com"
                                 app:iconGravity="textStart"
                                 app:iconTint="@android:color/white" />
 
@@ -221,7 +222,7 @@
                                 android:text="Resume"
                                 android:textColor="@android:color/white"
                                 app:backgroundTint="@color/button"
-                                app:icon="@drawable/baseline_play_arrow_24"
+                                app:icon="@drawable/play_icon_com"
                                 app:iconGravity="textStart"
                                 app:iconTint="@android:color/white" />
                         </com.google.android.material.button.MaterialButtonGroup>
@@ -284,7 +285,7 @@
                                 android:layout_height="60dp"
                                 android:layout_marginStart="15dp"
                                 android:tint="@color/primary_90"
-                                app:srcCompat="@drawable/baseline_donut_large_24" />
+                                app:srcCompat="@drawable/storage_icon_com" />
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -329,7 +330,7 @@
                                     android:layout_height="60dp"
                                     android:layout_marginStart="15dp"
                                     android:tint="@color/primary_90"
-                                    app:srcCompat="@drawable/baseline_folder_open_24" />
+                                    app:srcCompat="@drawable/folders_icon_com" />
 
                                 <LinearLayout
                                     android:layout_width="wrap_content"
@@ -402,7 +403,7 @@
                                 android:layout_height="60dp"
                                 android:layout_marginStart="15dp"
                                 android:tint="@color/primary_90"
-                                app:srcCompat="@drawable/baseline_circle_24" />
+                                app:srcCompat="@drawable/tab_icon_com" />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
@@ -512,7 +513,7 @@
                                     android:layout_height="60dp"
                                     android:layout_marginStart="15dp"
                                     android:tint="@color/primary_90"
-                                    app:srcCompat="@drawable/baseline_code_24" />
+                                    app:srcCompat="@drawable/github_icon_com" />
 
                                 <TextView
                                     android:layout_width="wrap_content"

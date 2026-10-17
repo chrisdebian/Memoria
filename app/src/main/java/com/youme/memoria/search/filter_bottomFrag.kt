@@ -15,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.toColorInt
+import androidx.core.view.children
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -27,6 +28,7 @@ import com.google.android.material.slider.Slider
 import com.google.android.material.textfield.TextInputEditText
 import com.youme.memoria.Gallery.FolderInfo
 import com.youme.memoria.PhotoRepository
+import com.youme.memoria.Preset
 import com.youme.memoria.R
 import com.youme.memoria.SearchFilters
 import com.youme.memoria.settings.FoldersManager.FoldersAdapter
@@ -45,8 +47,9 @@ class FilterBottomFrag(): BottomSheetDialogFragment(R.layout.filter_layout) {
     private lateinit var searchFilters: SearchFilters
     private var selectedFolders = mutableListOf<String>()
     private var startDateFilter : Long? = null
-    private var confidence  : Float= 0.15f
+    private var preset  : Preset= Preset.BALANCED
     private var endDateFilter : Long?  = null
+
 
     private lateinit var Adapter : FoldersAdapter
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -61,7 +64,7 @@ class FilterBottomFrag(): BottomSheetDialogFragment(R.layout.filter_layout) {
                 startDateFilter = it.startDate
                 endDateFilter  =  it.endDate
                 searchFilters = it
-                confidence = it.confidence
+                preset = it.confidence
                 setupUi()
             }
         }
@@ -88,7 +91,7 @@ class FilterBottomFrag(): BottomSheetDialogFragment(R.layout.filter_layout) {
         val applyBt = requireView().findViewById<Button>(R.id.button6)
 
         applyBt.setOnClickListener {
-            val searchFilters = searchFilters.copy(folders = selectedFolders, startDate = startDateFilter, endDate = endDateFilter, confidence =  confidence)
+            val searchFilters = searchFilters.copy(folders = selectedFolders, startDate = startDateFilter, endDate = endDateFilter, confidence =  preset)
             viewModuel.setSearchFilters(searchFilters)
             dismiss()
         }
@@ -153,26 +156,29 @@ class FilterBottomFrag(): BottomSheetDialogFragment(R.layout.filter_layout) {
 
     }
     private fun setupConfidenceSlider(){
-        val slider= requireView().findViewById<Slider>(R.id.rangeSlider)
-        val infoChip = requireView().findViewById<Chip>(R.id.chip3)
-        val resetBt = requireView().findViewById<Button>(R.id.button8)
-
-        slider.value = confidence
-        infoChip.text = "%${((confidence*10000)/30).toInt()}"
-
-
-        slider.addOnChangeListener{_, value, fromUser ->
-            confidence = value
-            infoChip.text = "%${((value*10000)/30).toInt()}"
-
-
+        val presetGroup = requireView().findViewById<ChipGroup>(R.id.presetGroup)
+        presetGroup.children.forEach {
+            val chip = it as Chip
+            val value = when (chip.id) {
+                R.id.chipLoose -> Preset.LOOSE
+                R.id.chipBalanced -> Preset.BALANCED
+                R.id.chipStrict -> Preset.STRICT
+                else -> 0 }
+            if (value == preset){
+                chip.isChecked=true
+            }
         }
-        slider.setLabelFormatter { value: Float ->
-            "%${((value*10000)/30).toInt()}"
+
+        presetGroup.setOnCheckedStateChangeListener { group, ids  ->
+            val value = when (ids.firstOrNull()) {
+                R.id.chipLoose -> Preset.LOOSE
+                R.id.chipBalanced -> Preset.BALANCED
+                R.id.chipStrict -> Preset.STRICT
+                else -> return@setOnCheckedStateChangeListener
+            }
+            preset = value
         }
-        resetBt.setOnClickListener {
-            slider.value = 0.15f
-        }
+
 
     }
     private fun returnFormatedDate(timeInMillis: Long?): String {

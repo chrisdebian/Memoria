@@ -79,7 +79,8 @@
 
                 <ImageView
                     android:layout_width="40dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="30dp"
+                    android:tint="@color/primary_90"
                     app:srcCompat="@drawable/outline_perm_media_24" />
 
                 <TextView
@@ -146,8 +147,9 @@
                 <ImageView
                     android:id="@+id/imageView16"
                     android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    app:srcCompat="@drawable/baseline_folder_open_24" />
+                    android:layout_height="30dp"
+                    android:tint="@color/primary_90"
+                    app:srcCompat="@drawable/folders_icon_com" />
 
                 <TextView
                     android:id="@+id/textView30"

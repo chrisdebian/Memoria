@@ -3,14 +3,14 @@
 
     <item
         android:id="@+id/photos"
-        android:icon="@drawable/outline_photo_library_24"
+        android:icon="@drawable/photos_icon_com"
         android:title="Photos" />
     <item
         android:id="@+id/album"
-        android:icon="@drawable/outline_photo_album_24"
+        android:icon="@drawable/albums_outline_icon_com"
         android:title="Album" />
     <item
         android:id="@+id/settings"
-        android:icon="@drawable/outline_settings_24"
+        android:icon="@drawable/settings_icon_com"
         android:title="Settings" />
 </menu>

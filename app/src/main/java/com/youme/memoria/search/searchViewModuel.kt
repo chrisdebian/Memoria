@@ -44,7 +44,7 @@ class SearchViewModuel(application: Application): AndroidViewModel(application) 
             repo.ensureTextModelInitialized()
             val allImages = repo.indexedImagesFiltered(filters)
             if (query.second==null) {
-                repo.search(query.first, allImages,filters.confidence)
+                repo.search(query.first, allImages,filters.confidence.score)
             }else{
                 repo.searchByImage(application,query.second!!,allImages)
             }

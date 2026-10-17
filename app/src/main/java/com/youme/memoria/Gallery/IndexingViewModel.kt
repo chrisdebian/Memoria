@@ -15,6 +15,11 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.youme.memoria.Gallery.IndexingViewModel.IndexingState
 import com.youme.memoria.ImageSizeUtil
 import com.youme.memoria.PhotoRepository
@@ -36,7 +41,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
-
+enum class ThermalStatus { GREEN, ORANGE, RED }
 data class FolderInfo(
     val bucketId: String,
     val bucketName: String,
@@ -75,35 +80,43 @@ class IndexingViewModel(
 
     val isPermissionGrandted  = MutableStateFlow<Boolean>(false)
 
-
+    private val wm = WorkManager.getInstance(appContext)
     val batteryTemp  = MutableStateFlow<Float>(0f)
 
     init {
         viewModelScope.launch {
-            scanGallery()
-            getBatteryTemperature()
-            getAvailableFolders()
-        }
-    }
-    private var wakeLock: PowerManager.WakeLock? = null
+            launch {
+                scanGallery()
+                getBatteryTemperature()
+                getAvailableFolders()
+            }
+            launch {
+                wm.getWorkInfosForUniqueWorkFlow(IndexingWorker.UNIQUE_NAME).collect { list ->
+                    val info = list.firstOrNull() ?: return@collect
+                    val done = info.progress.getInt(IndexingWorker.KEY_DONE, 0)
+                    val total = info.progress.getInt(IndexingWorker.KEY_TOTAL, imglist.size)
+                    val eta = info.progress.getLong(IndexingWorker.KEY_ETA, 0)
 
-    private fun acquireWakeLock() {
-        val powerManager = appContext.getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(
-            PowerManager.PARTIAL_WAKE_LOCK,
-            "Memoria::IndexingWakeLock"
-        ).apply {
-            setReferenceCounted(false)
-            acquire(10 * 60 * 1000L)
+                    _state.value = when (info.state) {
+                        WorkInfo.State.RUNNING   -> {
+                            getBatteryTemperature()
+                            getFormattedDatabaseSize("photo_db")
+                            IndexingState.Running(done, total, eta.toFloat())
+                        }
+                        WorkInfo.State.SUCCEEDED -> IndexingState.Completed(info.outputData.getInt(IndexingWorker.KEY_DONE, done))
+                        WorkInfo.State.ENQUEUED  -> IndexingState.Ready(done, total)
+                        WorkInfo.State.CANCELLED,
+                        WorkInfo.State.FAILED    -> IndexingState.Ready(done, total)
+                        else -> _state.value
+                    }
+                }
+            }
+
         }
+
     }
 
-    private fun releaseWakeLock() {
-        wakeLock?.let {
-            if (it.isHeld) it.release()
-        }
-        wakeLock = null
-    }
+
     private fun getDatabaseSizeInBytes(context: Context, dbName: String): Long {
         val dbFile = context.getDatabasePath(dbName)
         if (!dbFile.exists()) {
@@ -194,8 +207,6 @@ class IndexingViewModel(
                 }else{
                     if (imglist.isNotEmpty())  _state.value = IndexingState.Ready(alreadyExists.filter { it !in toDelete }.size,imglist.size)
                 }
-
-
             }catch (e: Exception){
 
             }
@@ -204,15 +215,8 @@ class IndexingViewModel(
 
     }
     }
-    enum class ThermalStatus { GREEN, ORANGE, RED }
 
-    fun getThermalStatus(tempCelsius: Float): ThermalStatus {
-        return when {
-            tempCelsius < 35f -> ThermalStatus.GREEN
-            tempCelsius < 42f -> ThermalStatus.ORANGE
-            else -> ThermalStatus.RED
-        }
-    }
+
     fun getBatteryTemperature() {
         val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
         val batteryStatus = appContext.registerReceiver(null, intentFilter)
@@ -222,105 +226,19 @@ class IndexingViewModel(
         batteryTemp.value =  tempTenths / 10.0f
     }
 
-    fun startIndexing(){
-        if (indexingJob?.isActive == true) return
-        acquireWakeLock()
-        var etaMin = 0f
-        var processedSize= 0
-        indexingJob = viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val alreadyExists = repo.alreadyExistsList().map { it.uri.toUri() }.toMutableList()
-                val toProcess = imglist.filter { it !in alreadyExists }
 
-                processedSize = alreadyExists.size
-
-                repo.initializeImageModel()
-
-                ensureActive()
-
-                toProcess.forEachIndexed { index, uri ->
-
-                    ensureActive()
-                    val startTime = System.currentTimeMillis()
-
-                    try {
-                        val encodedImage =
-                            repo.encodeImage(appContext, uri)
-                        val sizeData = ImageSizeUtil.getImageDimensions(appContext,uri)
-                        val photoMetaData = ImageSizeUtil.getPhotoMetadata(appContext,uri)
-                        val cameraInfo = ImageSizeUtil.getCameraInfo(appContext,uri)
-                        repo.saveEmbedding(
-                            uri.toString(),
-                            encodedImage,
-                            sizeData?.second?:0,
-                            sizeData?.first?:0,
-                            photoMetaData?.first,
-                            photoMetaData?.second,
-                            cameraInfo.first,
-                            cameraInfo.second
-
-                        )
-                        alreadyExists.add(uri)
-
-                    } catch (e: CancellationException) {
-                        throw e
-
-                    } catch (e: Throwable) {
-                        Log.e("ImageEncoding", "Failed: $uri", e)
-                        repo.markAsFailed(uri.toString())
-                    }
-                    if (index%10 == 0 || index == toProcess.size-1){
-                        val endTime = System.currentTimeMillis()
-
-                        val etaMs = (endTime - startTime).toFloat() * (toProcess.size - index - 1)
-                        etaMin = etaMs
-
-                        //update ui info
-                        getBatteryTemperature()
-                        getFormattedDatabaseSize("photo_db")
-
-
-                        when (getThermalStatus(batteryTemp.value)) {
-                            ThermalStatus.RED -> {
-                                while (isActive) {
-                                    delay(5000)
-                                    getBatteryTemperature()
-                                    if (getThermalStatus(batteryTemp.value) != ThermalStatus.RED) break
-                                }
-                            }
-                            ThermalStatus.ORANGE -> {
-                                delay(800)
-                            }
-                            ThermalStatus.GREEN -> {
-                            }
-                        }
-                    }
-
-
-
-                    _state.value = IndexingState.Running(processedSize,imglist.size,etaMin)
-                    processedSize++
-
-
-                }
-
-                _state.value = IndexingState.Completed(processedSize)
-
-            } catch (e: CancellationException) {
-
-                _state.value = IndexingState.Ready(processedSize , imglist.size)
-
-            } catch (e: Exception) {
-                Log.e("Indexing", "Fatal error during indexing", e)
-
-            }finally {
-                repo.unloadModel()
-                releaseWakeLock()
-            }
-        }
+    fun startIndexing() {
+        val req = OneTimeWorkRequestBuilder<IndexingWorker>()
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiresBatteryNotLow(true)
+                    .build()
+            )
+            .build()
+        wm.enqueueUniqueWork(IndexingWorker.UNIQUE_NAME, ExistingWorkPolicy.KEEP, req)
     }
 
-    fun pause() = indexingJob?.cancel()
+    fun pause() = wm.cancelUniqueWork(IndexingWorker.UNIQUE_NAME)
 
     override fun onCleared() {
         viewModelScope.launch(NonCancellable) {

@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
         AppCompatDelegate.setDefaultNightMode(
             AppCompatDelegate.MODE_NIGHT_YES
         )
-        super.onCreate(savedInstanceState)
+
         lifecycleScope.launch {
             OnboardingPrefs.isOnboardingDone(this@MainActivity).collect { done ->
                 if (!done) {
@@ -39,10 +39,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
-
-
-
+        super.onCreate(savedInstanceState)
 
     }
     private fun setupScreen(){
@@ -58,16 +55,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupBottomNav(){
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
+
+
+        val gallery = GalleryFragement()
+        val settings = SettingsFragment()
+        val album  = AlbumFragment()
+
         bottomNav.setOnItemSelectedListener { item->
             when(item.itemId){
                 R.id.photos->{
-                    replaceFrag(GalleryFragement())
+                    replaceFrag(gallery)
                 }
                 R.id.settings->{
-                    replaceFrag(SettingsFragment())
+                    replaceFrag(settings)
                 }
                 R.id.album->{
-                    replaceFrag(AlbumFragment())
+                    replaceFrag(album)
                 }
             }
             true

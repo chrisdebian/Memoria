@@ -1,9 +1,11 @@
 package com.youme.memoria
 
+import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
+import android.provider.MediaStore
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.room.Query
@@ -14,19 +16,24 @@ import com.youme.inkdex.roomCach.toByteArray
 import com.youme.inkdex.roomCach.toFloatArray
 import com.youme.memoria.Encoder.MemoriaEncoder
 import com.youme.memoria.ImageLoading.ImageUriItem
+import com.youme.memoria.settings.FoldersManager.FolderPrefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
+enum class Preset(val score: Float) {
+    LOOSE(0.14f), BALANCED(0.18f), STRICT(0.22f)
+}
 data class SearchFilters(
     val startDate: Long?,
     val endDate: Long?,
     val folders: List<String>,
     val camera: String?,
-    val confidence : Float = 0.15f
+    val confidence : Preset  = Preset.BALANCED
 )
 
 class PhotoRepository(context: Context) {
@@ -200,6 +207,58 @@ class PhotoRepository(context: Context) {
     suspend fun unloadModel() = imageModelMutex.withLock {memoriaEncoder.close()}
     fun unloadImageModel() = memoriaEncoder.freeImageEncoder()
 
+    val folderPrefs = FolderPrefs(context)
+
+    suspend fun getImagesToIndex(context: Context) : List<Uri> {
+
+        val imglist = mutableListOf<Uri>()
+        val selectedBuckets = folderPrefs.selectedBuckets.first()
+
+        val projection = arrayOf(
+            MediaStore.Images.Media._ID,
+            MediaStore.Images.Media.DISPLAY_NAME,
+            MediaStore.Images.Media.DATE_ADDED
+        )
+
+        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
+
+        var selection: String? = null
+        var selectionArgs: Array<String>? = null
+
+        if (selectedBuckets.isNotEmpty()) {
+            val placeholders = selectedBuckets.joinToString(",") { "?" }
+            selection = "${MediaStore.Images.Media.BUCKET_ID} IN ($placeholders)"
+            selectionArgs = selectedBuckets.toTypedArray()
+        }
+
+        context.contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            selection,
+            selectionArgs,
+            sortOrder
+        )?.use { cursor ->
+
+            val idCol =
+                cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+
+            val nameCol =
+                cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
+
+            while (cursor.moveToNext()) {
+
+                val id = cursor.getLong(idCol)
+                val name = cursor.getString(nameCol)
+
+                val uri = ContentUris.withAppendedId(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    id
+                )
+                imglist.add(uri)
+            }
+        }
+        return imglist
+    }
     fun uriToBitmap(context: Context, uri: Uri): Bitmap {
         val source = ImageDecoder.createSource(context.contentResolver, uri)
         return ImageDecoder.decodeBitmap(source) { decoder, info, _ ->

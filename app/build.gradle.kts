@@ -77,6 +77,9 @@ dependencies {
     implementation("com.github.yalantis:ucrop:2.2.11")
 
 
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+
+
 
 
 }

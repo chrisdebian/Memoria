@@ -126,6 +126,7 @@ class GalleryFragement  : Fragment(R.layout.gallery_layout){
 
         collapseButton.setOnClickListener {
             animateIndicator(largeIndicatorBox,smallIndicatorBox)
+            toolbar.title=""
 
         }
         smallIndicatorBox.setOnClickListener {
@@ -216,11 +217,6 @@ class GalleryFragement  : Fragment(R.layout.gallery_layout){
 
 
                             smallIndicatorText.text = "Completed"
-
-
-                            //close large indicator
-                            animateIndicator(largeIndicatorBox,smallIndicatorBox)
-                            toolbar.title=""
                         }
                         else -> {}
                     }
