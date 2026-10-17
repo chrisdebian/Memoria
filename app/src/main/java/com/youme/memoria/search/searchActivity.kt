@@ -264,6 +264,7 @@ class searchActivity : AppCompatActivity() {
                         is SearchState.Error -> {
                             progressbar.isVisible = false
                             Log.d("searcherror", "setupSearch: ${state.message}")
+                            Toast.makeText(this@searchActivity, "Search failed. Please try again.", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
