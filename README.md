@@ -59,6 +59,7 @@ You type:  "my dog with a hat"          You show a photo of a chair
 
 **Search**
 - **Semantic photo search** — find photos by meaning, not metadata. "Sunset at sea" finds sunset photos even if they have no tags.
+- **Multilingual search** — search in English, Arabic, French, Russian or Spanish. Queries are understood directly by the text encoder, with no translation step.
 - **Search by photo** — pick one from anywhere and find visually similar photos in your gallery, no text needed.
 - **Crop to search** — crop a photo down to just a face, an object, or one corner of the scene, and search with only that part.
 - **Search from other apps** — share an image from any app, pick Memoria, and search your gallery without opening Memoria first.
@@ -105,11 +106,13 @@ The model used is **MobileCLIP-S0** — Apple's mobile-optimized CLIP variant th
 
 As of v1.5.0 the text encoder's token embedding table is **quantized to int8 and built into the text encoder model itself**, which cut the app from about 280 MB to about 100 MB with no loss in search quality. The image encoder stays at fp16.
 
+As of v1.7.0 the text encoder is a **custom-trained multilingual model** that understands English, Arabic, French, Russian and Spanish, paired with a **SentencePiece tokenizer** that handles Arabic and Cyrillic scripts, accents and punctuation. It maps queries into the same space as the image encoder, so existing photo indexes keep working without a reindex.
+
 | Component | Details |
 |---|---|
 | Image encoder | MobileCLIP-S0 → TFLite, fp16 |
-| Text encoder | MobileCLIP-S0 transformer → TFLite, with int8-quantized token embeddings built in |
-| Vocab | OpenAI CLIP BPE tokenizer, 49,408 tokens |
+| Text encoder | Custom-trained multilingual text encoder (English, Arabic, French, Russian, Spanish) → TFLite, int8 |
+| Tokenizer | SentencePiece (`spm.model`), 77-token context |
 | Embedding dim | 512 floats per image/query |
 | Similarity | Cosine similarity (L2-normalized dot product) |
 | Cropping | [uCrop](https://github.com/Yalantis/uCrop) |
@@ -145,12 +148,12 @@ git clone https://github.com/raslenabb12/memoria.git
 cd memoria
 ```
 
-Model files go into `app/src/main/assets/`:
+The model files are included in the repository, in `app/src/main/assets/`:
 
 ```
-mobileclip_s0_image_v2.tflite       (image encoder)
-mobileclip_s0_text_int8.tflite    (text encoder, includes the int8 token embeddings)
-vocab.json                          (tokenizer vocabulary)
+mobileclip_s0_image_v2.tflite   (image encoder)
+text_encoder_int8w.tflite       (multilingual text encoder)
+spm.model                       (SentencePiece tokenizer model)
 ```
 
 Then open in Android Studio and run.
