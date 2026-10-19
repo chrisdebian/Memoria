@@ -12,8 +12,8 @@ android {
         applicationId = "com.youme.memoria"
         minSdk = 28
         targetSdk = 36
-        versionCode = 9
-        versionName = "v1.7.0-Beta"
+        versionCode = 10
+        versionName = "v1.8.0-Beta"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -77,7 +77,7 @@ dependencies {
     implementation("com.github.yalantis:ucrop:2.2.11")
 
 
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation("androidx.work:work-runtime-ktx:2.12.0")
 
 
 

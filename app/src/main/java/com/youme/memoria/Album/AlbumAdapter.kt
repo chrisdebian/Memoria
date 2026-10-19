@@ -11,9 +11,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.google.android.material.card.MaterialCardView
-import com.youme.inkdex.roomCach.AlbumEntity
-import com.youme.inkdex.roomCach.AlbumsList
 import com.youme.memoria.R
+import com.youme.memoria.roomCach.AlbumsList
 
 class AlbumAdapter(
     private var items: List<AlbumsList>,

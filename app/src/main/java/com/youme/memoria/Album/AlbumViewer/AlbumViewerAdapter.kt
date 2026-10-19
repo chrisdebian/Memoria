@@ -9,8 +9,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.google.android.material.card.MaterialCardView
-import com.youme.inkdex.roomCach.AlbumPhotoEntity
 import com.youme.memoria.R
+import com.youme.memoria.roomCach.AlbumPhotoEntity
 import kotlin.collections.mutableListOf
 
 class AlbumViewerAdapter(

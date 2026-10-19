@@ -9,13 +9,13 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.room.Query
-import com.youme.inkdex.roomCach.FolderCount
-import com.youme.inkdex.roomCach.PhotoEntity
-import com.youme.inkdex.roomCach.PhotosDatabase
-import com.youme.inkdex.roomCach.toByteArray
-import com.youme.inkdex.roomCach.toFloatArray
 import com.youme.memoria.Encoder.MemoriaEncoder
 import com.youme.memoria.ImageLoading.ImageUriItem
+import com.youme.memoria.roomCach.FolderCount
+import com.youme.memoria.roomCach.PhotoEntity
+import com.youme.memoria.roomCach.PhotosDatabase
+import com.youme.memoria.roomCach.toByteArray
+import com.youme.memoria.roomCach.toFloatArray
 import com.youme.memoria.settings.FoldersManager.FolderPrefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -118,7 +118,7 @@ class PhotoRepository(context: Context) {
         }
     }
 
-    suspend fun search(query: String,indexedImages : List<PhotoEntity>,confidence: Float) : List<Pair<PhotoEntity,Float>>{
+    suspend fun search(query: String, indexedImages : List<PhotoEntity>, confidence: Float) : List<Pair<PhotoEntity,Float>>{
         return withContext(Dispatchers.Default){
             val encodedText = memoriaEncoder.encodeText(query)
 

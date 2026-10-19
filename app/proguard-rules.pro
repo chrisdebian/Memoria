@@ -20,3 +20,6 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -dontwarn okhttp3.**
+-keep class * extends androidx.work.InputMerger {
+    public <init>();
+}

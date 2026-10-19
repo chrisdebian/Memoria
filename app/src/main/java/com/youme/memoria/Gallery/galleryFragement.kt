@@ -51,6 +51,16 @@ class GalleryFragement  : Fragment(R.layout.gallery_layout){
     private val indexingViewModel: IndexingViewModel by activityViewModels {
         IndexingViewModelFactory(repo, requireContext().applicationContext)
     }
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+               indexingViewModel.startIndexing()
+            }
+            else{
+                Toast.makeText(requireContext(),"started indexing without notification", Toast.LENGTH_SHORT).show()
+                indexingViewModel.startIndexing()
+            }
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
@@ -107,6 +117,19 @@ class GalleryFragement  : Fragment(R.layout.gallery_layout){
 
             }
 
+        }
+    }
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val granted = ContextCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }else indexingViewModel.startIndexing()
+        }
+        else{
+            indexingViewModel.startIndexing()
         }
     }
 
@@ -170,7 +193,8 @@ class GalleryFragement  : Fragment(R.layout.gallery_layout){
 
                             processButton.isVisible=true
                             processButton.setOnClickListener {
-                                indexingViewModel.startIndexing()
+                                //before starting request notfications permissions
+                                requestNotificationPermissionIfNeeded()
                                 logText.text="Loading"
                                 progressbar.isIndeterminate=true
                             }

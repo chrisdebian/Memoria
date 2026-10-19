@@ -2,6 +2,7 @@ package com.youme.memoria.Album
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.textclassifier.SelectionEvent
 import android.widget.TextView
@@ -84,11 +85,11 @@ class AlbumFragment : Fragment(R.layout.album_layout) {
     }
     override fun onResume() {
         super.onResume()
+
         lifecycleScope.launch(Dispatchers.IO) {
             viewModuel.updatedB()
         }
     }
-
 }
 fun deleteAlert(context: Context,title: String,description:String,onClick : ()->Unit){
    MaterialAlertDialogBuilder(context, R.style.MyAlertDialogTheme)

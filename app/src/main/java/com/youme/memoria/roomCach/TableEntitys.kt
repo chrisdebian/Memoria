@@ -1,4 +1,4 @@
-package com.youme.inkdex.roomCach
+package com.youme.memoria.roomCach
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

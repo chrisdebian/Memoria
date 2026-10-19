@@ -12,9 +12,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.youme.inkdex.roomCach.SearchHistoryEntity
 import com.youme.memoria.ImageLoading.ImageUriItem
 import com.youme.memoria.R
+import com.youme.memoria.roomCach.SearchHistoryEntity
 import java.util.concurrent.TimeUnit
 
 

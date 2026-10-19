@@ -1,14 +1,19 @@
 package com.youme.memoria.settings
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -36,6 +41,30 @@ import com.youme.memoria.settings.FoldersManager.FoldersManager
 class SettingsFragment : Fragment(R.layout.settings_layout) {
     private val indexingViewModel: IndexingViewModel by activityViewModels {
         IndexingViewModelFactory(PhotoRepository(requireContext()), requireContext().applicationContext)
+    }
+
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                indexingViewModel.startIndexing()
+            }else{
+                Toast.makeText(requireContext(),"started indexing without notification", Toast.LENGTH_SHORT).show()
+                indexingViewModel.startIndexing()
+            }
+        }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val granted = ContextCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }else indexingViewModel.startIndexing()
+        }
+        else{
+            indexingViewModel.startIndexing()
+        }
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -144,7 +173,7 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
                                     isEnabled = true
                                     setOnClickListener {
                                         progressLog.text = "Loading.."
-                                        indexingViewModel.startIndexing()
+                                        requestNotificationPermissionIfNeeded()
                                     }
                                 }
                                 pauseBt.isEnabled = false

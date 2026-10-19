@@ -2,12 +2,11 @@ package com.youme.memoria.Album
 
 import android.content.Context
 import androidx.core.net.toUri
-import com.youme.inkdex.roomCach.AlbumEntity
-import com.youme.inkdex.roomCach.AlbumPhotoEntity
-import com.youme.inkdex.roomCach.AlbumsList
-import com.youme.inkdex.roomCach.PhotosDatabase
 import com.youme.memoria.Encoder.MemoriaEncoder
 import com.youme.memoria.Encoder.MemoriaEncoder.Companion.EMBED_DIM
+import com.youme.memoria.roomCach.AlbumEntity
+import com.youme.memoria.roomCach.AlbumPhotoEntity
+import com.youme.memoria.roomCach.PhotosDatabase
 import kotlinx.coroutines.flow.first
 
 
@@ -17,7 +16,14 @@ class AlbumRepo (context: Context) {
     private val memoriaEncoder = MemoriaEncoder(context)
 
     suspend fun addAlbum(albumId:String,title: String, autoUpdate: Boolean){
-        dao.insertAlbum(AlbumEntity(id = albumId, name = title, centroidEmbedding = ByteArray(0), autoUpdate = autoUpdate))
+        dao.insertAlbum(
+            AlbumEntity(
+                id = albumId,
+                name = title,
+                centroidEmbedding = ByteArray(0),
+                autoUpdate = autoUpdate
+            )
+        )
     }
 
     suspend fun addPhotosToAlbum(images: List<AlbumPhotoEntity>){
