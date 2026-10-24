@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memoria – Private offline photo search for Android</title>
+<meta name="description" content="Search your photos with words in English, Arabic, French, Russian or Spanish, or with another photo. No cloud, no account, no internet permission.">
+<meta name="theme-color" content="#1C1B1F">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #1C1B1F;          
+  --surface-low: #211F23;  
+  --surface: #2B2930;     
+  --surface-high: #36343B; 
+  --on-bg: #E6E1E5;        
+  --on-variant: #CAC4D0;   
+  --outline: #938F99;      
+  --outline-soft: #444548;  
+  --primary: #D0BCFF;      
+  --on-primary: #381E72;   
+  --primary-container: #4F378B; 
+  --on-primary-container: #EADDFF; 
+  --tertiary: #EFB8C8;    
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--on-bg);
+  font-family: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.0625rem; line-height: 1.6;
+}
+a { color: var(--primary); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; border-radius: 6px; }
+.wrap { max-width: 64rem; margin: 0 auto; padding: 0 1.25rem; }
+
+.top { display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 0; }
+.logo { font-weight: 800; font-size: 1.3rem; color: var(--on-bg); text-decoration: none; letter-spacing: -0.01em;margin: auto; }
+.top nav a { margin-left: 1.25rem; color: var(--on-variant); text-decoration: none; font-size: 0.95rem; }
+.top nav a:hover { color: var(--on-bg); }
+
+.btn {
+  display: inline-block; border-radius: 24px; padding: 0.8rem 1.6rem; text-decoration: none;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; font-weight: 500;
+  font-size: 0.9rem; letter-spacing: 0.02em;
+  background: var(--primary); color: var(--on-primary);
+}
+.btn:hover { filter: brightness(1.07); }
+.btn.secondary { background: var(--surface); color: var(--on-bg); }
+.btn.secondary:hover { background: var(--surface-high); filter: none; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+.hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 2.5rem; align-items: center; padding: 3rem 0 4rem; }
+h1 { font-size: clamp(2.4rem, 6.5vw, 4rem); line-height: 1.05; letter-spacing: -0.03em; font-weight: 800; margin: 0 0 1rem; }
+.lead { font-size: 1.2rem; color: var(--on-variant); max-width: 30rem; margin: 0 0 1.75rem; }
+.search {
+  display: flex; align-items: center; gap: 0.75rem; background: var(--surface);
+  border-radius: 999px; padding: 0.85rem 1.25rem; margin-bottom: 1.75rem; max-width: 26rem;
+}
+.search svg { flex: none; color: var(--on-variant); }
+#q { color: var(--on-bg); }
+#q::after { content: ""; display: inline-block; width: 2px; height: 1.15em; background: var(--primary); vertical-align: text-bottom; margin-left: 2px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.small { color: var(--outline); font-size: 0.9rem; margin: 1rem 0 0; }
+
+
+.phone { background: #000; border: 6px solid var(--surface-high); border-radius: 2rem; overflow: hidden; line-height: 0; }
+.phone img { width: 100%; height: auto; display: block; }
+.hero .phone { max-width: 17rem; margin-left: auto; }
+
+section { padding: 3rem 0; }
+h2 { font-size: 1.9rem; letter-spacing: -0.02em; font-weight: 800; margin: 0 0 0.5rem; }
+.sub { color: var(--on-variant); max-width: 36rem; margin: 0 0 1.75rem; }
+.shots { display: flex; gap: 1.25rem; overflow-x: auto; padding-bottom: 1rem; scroll-snap-type: x mandatory; }
+.shot { flex: 0 0 13rem; scroll-snap-align: start; margin: 0; }
+.shot figcaption { margin-top: 0.7rem; font-size: 0.92rem; color: var(--on-variant); }
+
+
+.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.feature { background: var(--surface); border-radius: 1.5rem; padding: 1.4rem 1.5rem; }
+.feature h3 { margin: 0 0 0.35rem; font-size: 1.1rem; }
+.feature p { margin: 0; color: var(--on-variant); font-size: 0.97rem; }
+.feature.accent { background: var(--primary-container); }
+.feature.accent p { color: var(--on-primary-container); }
+
+
+.privacy ul { margin: 0; padding: 0; list-style: none; max-width: 40rem; }
+.privacy li { padding: 0.8rem 0 0.8rem 1.9rem; position: relative; border-bottom: 1px solid var(--outline-soft); }
+.privacy li::before { content: ""; position: absolute; left: 0.3rem; top: 1.35rem; width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--tertiary); }
+
+.how p { max-width: 40rem; color: var(--on-variant); }
+
+.cta { background: var(--surface-low); border-radius: 2rem; padding: 2.5rem 1.75rem; text-align: center; }
+.cta p { color: var(--on-variant); margin: 0 auto 1.5rem; max-width: 30rem; }
+.cta .actions { justify-content: center; }
+
+footer { padding: 2.5rem 0 3rem; color: var(--outline); font-size: 0.9rem; }
+
+
+.logo_holder{ align-items: center; place-items: center;display: flex;}
+
+@media (max-width: 760px) {
+  .hero { grid-template-columns: 1fr; padding-top: 1.5rem; }
+  .hero .phone { margin: 0 auto; }
+  .top nav a:first-child { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) { #q::after { animation: none; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo_holder">
+    <img height="50" width="50" src="https://github.com/raslenabb12/Memoria/raw/master/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp"/>
+    <a class="logo" href="#">Memoria</a>
+    </div>
+    
+    <nav>
+      <a href="#screens">Screenshots</a>
+      <a href="#privacy">Privacy</a>
+      <a href="https://github.com/raslenabb12/Memoria">GitHub</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1>Search your photos with words.</h1>
+      <p class="lead">Memoria is a free Android app that finds photos in your gallery by what's in them. No cloud, no account, nothing leaves your phone.</p>
+      <div class="search" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span id="q"></span>
+      </div>
+      <div class="actions">
+        <a class="btn" href="https://github.com/raslenabb12/Memoria/releases/latest">Download for Android</a>
+        <a class="btn secondary" href="https://github.com/raslenabb12/Memoria">View source</a>
+      </div>
+      <p class="small">Free and open source. Android 9 or newer. About 100 MB.</p>
+    </div>
+    <div class="phone"><img src="https://github.com/raslenabb12/Memoria/raw/master/images/pic8.jpg" alt="Memoria showing photo search results for the word cat" width="540" height="1230"></div>
+  </div>
+
+  <section id="screens">
+    <h2>See it in action</h2>
+    <p class="sub">Swipe through the app.</p>
+    <div class="shots">
+      <figure class="shot"><div class="phone"><img loading="lazy" src="https://github.com/raslenabb12/Memoria/raw/master/images/pic7.jpg" alt="Gallery grid with an indexing progress bar" width="540" height="1230"></div><figcaption>Browse while indexing runs in the background</figcaption></figure>
+      <figure class="shot"><div class="phone"><img loading="lazy" src="https://github.com/raslenabb12/Memoria/raw/master/images/pic8.jpg" alt="Search results for the word cat" width="540" height="1230"></div><figcaption>Search by meaning, not tags</figcaption></figure>
+      <figure class="shot"><div class="phone"><img loading="lazy" src="https://github.com/raslenabb12/Memoria/raw/master/images/search_by_photo.gif" alt="Searching with a photo of a kitten" width="480" height="1040"></div><figcaption>Search with a photo</figcaption></figure>
+      <figure class="shot"><div class="phone"><img loading="lazy" src="https://github.com/raslenabb12/Memoria/raw/master/images/pic_5.jpg" alt="Filters for date range and folders" width="540" height="1170"></div><figcaption>Filter by date, folder or camera</figcaption></figure>
+      <figure class="shot"><div class="phone"><img loading="lazy" src="https://github.com/raslenabb12/Memoria/raw/master/images/pic_6.jpg" alt="Full-screen photo viewer" width="540" height="1170"></div><figcaption>Full-screen viewer</figcaption></figure>
+      <figure class="shot"><div class="phone"><img loading="lazy" src="https://github.com/raslenabb12/Memoria/raw/master/images/pic9.jpg" alt="Settings with live indexing status and storage" width="540" height="1230"></div><figcaption>Live indexing status, pause and resume</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="features">
+    <h2>What it does</h2>
+    <p class="sub">Everything runs on your phone.</p>
+    <div class="features">
+      <div class="feature accent"><h3>Five languages</h3><p>Search in English, Arabic, French, Russian or Spanish. No translation step.</p></div>
+      <div class="feature"><h3>Search by meaning</h3><p>Type "birthday cake" or "snowy mountains". Photos don't need tags or captions.</p></div>
+      <div class="feature"><h3>Search with a photo</h3><p>Pick any image, crop it to one face or object, or share one from another app into Memoria.</p></div>
+      <div class="feature"><h3>Find Similar</h3><p>Open a photo and tap once to see more like it.</p></div>
+      <div class="feature"><h3>Smart Albums</h3><p>Experimental. Create an album and Memoria suggests matching photos as your library grows.</p></div>
+      <div class="feature"><h3>Filters and folders</h3><p>Narrow results by date, folder or camera. Choose which folders get indexed, so screenshots stay out.</p></div>
+    </div>
+  </section>
+
+  <section id="privacy" class="privacy">
+    <h2>Private by design</h2>
+    <ul>
+      <li>The app has no internet permission, so it cannot send anything anywhere.</li>
+      <li>No account, no analytics, no ads.</li>
+      <li>Your photo index and search history stay on your device and are excluded from system backups.</li>
+      <li>The code is open, so you can check all of this yourself.</li>
+    </ul>
+  </section>
+
+  <section class="how">
+    <h2>How it works</h2>
+    <p>Memoria runs Apple's MobileCLIP model on your phone. It turns each photo, and each thing you type, into a list of numbers. Photos whose numbers are closest to your search come first. Indexing runs in the background, and you can pause it any time.</p>
+  </section>
+
+  <section>
+    <div class="cta">
+      <h2>Get Memoria</h2>
+      <p>Download the latest APK from GitHub Releases. Updates keep your existing index and albums.</p>
+      <div class="actions">
+        <a class="btn" href="https://github.com/raslenabb12/Memoria/releases/latest">Download the latest version</a>
+        <a class="btn secondary" href="https://github.com/raslenabb12/Memoria">GitHub</a>
+      </div>
+      <p class="small" style="margin-top:1rem">You may need to allow installs from your browser or file manager the first time.</p>
+    </div>
+  </section>
+
+  <footer>
+    Memoria is licensed under Apache 2.0. The bundled MobileCLIP-S0 model is subject to Apple's ML Research Model Terms of Use.
+    Made by <a href="https://github.com/raslenabb12">raslenabb12</a>.
+  </footer>
+</div>
+
+<script>
+(function () {
+  var el = document.getElementById("q");
+  var queries = ["dog at the beach", "birthday cake", "كلب على الشاطئ", "montagnes enneigées", "закат над морем", "gato durmiendo"];
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = queries[0]; return; }
+  var qi = 0, ci = 0, deleting = false;
+  function tick() {
+    var text = queries[qi];
+    el.textContent = text.slice(0, ci);
+    if (!deleting && ci < text.length) { ci++; return setTimeout(tick, 80); }
+    if (!deleting) { deleting = true; return setTimeout(tick, 1500); }
+    if (ci > 0) { ci--; return setTimeout(tick, 35); }
+    deleting = false; qi = (qi + 1) % queries.length; setTimeout(tick, 300);
+  }
+  tick();
+})();
+</script>
+</body>
+</html>
