@@ -50,6 +50,9 @@ class AlbumAdapter(
                 .into(imageview)
         }
         val isSelected = selectedAlbum.contains(albumlist.albumId)
+        holder.box.apply {
+            if (isSelected) {scaleX=0.9f;scaleY=0.9f} else {scaleX=1f;scaleY=1f}
+        }
         holder.box.strokeWidth = if (isSelected) 10 else 0
         holder.checkMark.isVisible = isSelected
         holder.countText.isVisible=!isSelected

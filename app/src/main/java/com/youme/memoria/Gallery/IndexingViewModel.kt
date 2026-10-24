@@ -25,6 +25,7 @@ import androidx.work.setInputMerger
 import com.youme.memoria.Gallery.IndexingViewModel.IndexingState
 import com.youme.memoria.ImageSizeUtil
 import com.youme.memoria.PhotoRepository
+import com.youme.memoria.roomCach.PhotosDatabase
 import com.youme.memoria.settings.FoldersManager.FolderPrefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -68,6 +69,7 @@ class IndexingViewModel(
 
     private val imglistMutex = Mutex()
     val imglist  =  mutableListOf<Uri>()
+    private val dao = PhotosDatabase.getInstance(appContext).AlbumDao()
 
     val folderPrefs = FolderPrefs(appContext)
 
@@ -143,6 +145,14 @@ class IndexingViewModel(
             dbSize.value= Formatter.formatFileSize(appContext, sizeInBytes)
         }
     }
+    private fun existsInMediaStore(uri: Uri): Boolean =
+        try {
+            appContext.contentResolver.query(
+                uri, arrayOf(MediaStore.Images.Media._ID), null, null, null
+            )?.use { it.moveToFirst() } ?: false
+        } catch (e: Exception) {
+            false
+        }
 
     suspend fun scanGallery() {
         imglistMutex.withLock {
@@ -196,7 +206,19 @@ class IndexingViewModel(
         viewModelScope.launch {
             try {
                 val alreadyExists = repo.alreadyExistsList().map { it.uri.toUri() }.toMutableList()
-                val toDelete=alreadyExists.filter { it !in imglist }
+                val imgSet = imglist.toHashSet()
+
+                val inAlbums = dao.albumPhotoUris().map { it.uri }.toHashSet()
+
+
+                val toDelete = alreadyExists.filter { uri ->
+                    if (uri in imgSet) return@filter false
+                    if (uri.toString() in inAlbums) {
+                        !existsInMediaStore(uri)
+                    } else {
+                        true
+                    }
+                }
 
                 if (toDelete.isNotEmpty() && imglist.isNotEmpty()) {
                     Toast.makeText(appContext, "Found ${toDelete.size} missing image(s). Deleting them now.", Toast.LENGTH_SHORT).show()
@@ -205,11 +227,11 @@ class IndexingViewModel(
                     }
                 }
 
-
-                if (alreadyExists.filter { it !in toDelete }.size == imglist.size){
+                val indexedInScope = alreadyExists.count { it in imgSet }
+                if (indexedInScope == imglist.size){
                     _state.value = IndexingState.Completed(imglist.size)
                 }else{
-                    if (imglist.isNotEmpty())  _state.value = IndexingState.Ready(alreadyExists.filter { it !in toDelete }.size,imglist.size)
+                    if (imglist.isNotEmpty())  _state.value = IndexingState.Ready(indexedInScope,imglist.size)
                 }
             }catch (e: Exception){
 

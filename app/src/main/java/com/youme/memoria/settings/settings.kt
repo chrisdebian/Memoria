@@ -45,12 +45,8 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) {
-                indexingViewModel.startIndexing()
-            }else{
-                Toast.makeText(requireContext(),"started indexing without notification", Toast.LENGTH_SHORT).show()
-                indexingViewModel.startIndexing()
-            }
+            indexingViewModel.startIndexing()
+            if (!granted) Toast.makeText(requireContext(),"started indexing without notification", Toast.LENGTH_SHORT).show()
         }
 
     private fun requestNotificationPermissionIfNeeded() {

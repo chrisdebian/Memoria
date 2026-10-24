@@ -118,6 +118,32 @@ class PhotoRepository(context: Context) {
         }
     }
 
+    suspend fun encodeAndSaveImage(context : Context,uri: Uri){
+        withContext(Dispatchers.IO){
+            initializeImageModel()
+            val bitmap = uriToBitmap(context, uri)
+            try {
+                val encodedImage= memoriaEncoder.encodeImage(bitmap)
+                val sizeData = ImageSizeUtil.getImageDimensions(context,uri)
+                val photoMetaData = ImageSizeUtil.getPhotoMetadata(context,uri)
+                val cameraInfo = ImageSizeUtil.getCameraInfo(context,uri)
+                saveEmbedding(
+                    uri.toString(),
+                    encodedImage,
+                    sizeData?.second?:0,
+                    sizeData?.first?:0,
+                    photoMetaData?.first,
+                    photoMetaData?.second,
+                    cameraInfo.first,
+                    cameraInfo.second,
+
+                )
+            } finally {
+                bitmap.recycle()
+            }
+        }
+    }
+
     suspend fun search(query: String, indexedImages : List<PhotoEntity>, confidence: Float) : List<Pair<PhotoEntity,Float>>{
         return withContext(Dispatchers.Default){
             val encodedText = memoriaEncoder.encodeText(query)

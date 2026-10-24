@@ -2,6 +2,7 @@ package com.youme.memoria.Album
 
 import android.app.Application
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
@@ -18,10 +19,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.UUID
+import kotlin.collections.map
 
 
 class AlbumViewModel(application: Application): AndroidViewModel(application){
@@ -42,6 +45,9 @@ class AlbumViewModel(application: Application): AndroidViewModel(application){
 
 
 
+    fun getAlbums(uri : String)  = dao.getAlbumsWithPhotos()
+        .map { list -> list.map { AlbumsList(it.album.id,it.album.name, it.photos.take(4).map { p -> p.uri.toUri() }, size = it.photos.size,it.photos.any {image -> image.uri==uri }) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun getAlbumPhotos(albumId : String) = dao.getAlbumsPhotos(albumId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -51,10 +57,15 @@ class AlbumViewModel(application: Application): AndroidViewModel(application){
     fun deleteAlbumPhotos(photos: List<String>, Adapter: AlbumViewerAdapter, photosList : List<AlbumPhotoEntity>){
         viewModelScope.launch {
 
+
+
             val newlist = photosList.filter { it.uri !in photos }
             val albumId = photosList.getOrNull(0)?.albumId
 
             val images=  photoDao.getPhotosByUri(newlist.map { it.uri })
+
+
+            dao.removeAlbumPhotos(photos,albumId?:"")
             albumId?.let {
                 if (newlist.isNotEmpty()){
                     dao.updateCentroidEmbedding(albumId,albumRepo.computeCentroid(images.map { it.embedding.toFloatArray() }).toByteArray())
@@ -62,11 +73,25 @@ class AlbumViewModel(application: Application): AndroidViewModel(application){
                     dao.updateCentroidEmbedding(albumId, ByteArray(0))
                 }
             }
-            dao.removeAlbumPhotos(photos,albumId?:"")
             Adapter.removeSelected()
-
         }
 
+    }
+    fun deletePhotoFromAlbum(uri : String,albumId: String){
+        viewModelScope.launch {
+            dao.removeAlbumPhotos(mutableListOf(uri),albumId?:"")
+            refreshCentroid(albumId)
+        }
+    }
+    fun addPhotoToAlbum(uri: String,albumId: String){
+        viewModelScope.launch {
+           if (!photoDao.photoExists(uri)) {
+               photoRepo.encodeAndSaveImage(application,uri.toUri())
+           }
+            dao.insertPhotos(listOf(AlbumPhotoEntity(albumId,uri)))
+            refreshCentroid(albumId)
+
+        }
     }
 
     suspend fun updatedB(){
@@ -90,6 +115,14 @@ class AlbumViewModel(application: Application): AndroidViewModel(application){
             val photosList = photoRepo.search(albumName,photoDao.getAll(), Preset.BALANCED.score)
             albumRepo.addPhotosToAlbum(photosList.map { AlbumPhotoEntity(albumId,it.first.uri) })
             dao.updateCentroidEmbedding(albumId,albumRepo.computeCentroid(photosList.map { it.first.embedding.toFloatArray() }).toByteArray())
+        }
+    }
+    private fun refreshCentroid(albumId: String){
+        viewModelScope.launch {
+            val albumImage = dao.getAlbumsPhotos(albumId = albumId).first()
+
+            val photos = photoDao.getPhotosByUri(albumImage.map { it.uri })
+            dao.updateCentroidEmbedding(albumId,albumRepo.computeCentroid(photos.map { it.embedding.toFloatArray() }).toByteArray())
         }
     }
     private fun updateEmbeddingsByCentroidEmbedding(embedding: ByteArray, albumId: String){

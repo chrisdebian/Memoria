@@ -7,34 +7,41 @@ import android.media.Image
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.PagingData
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.yalantis.ucrop.UCrop
+import com.youme.memoria.Album.AlbumViewModel
 import com.youme.memoria.Album.deleteAlert
 import com.youme.memoria.Gallery.GalleryRepository
 import com.youme.memoria.Gallery.GalleryViewModel
 import com.youme.memoria.R
+import com.youme.memoria.imageViewer.Album.AddToAlbumBottomSheet
 import com.youme.memoria.search.SearchResultCache
 import com.youme.memoria.search.searchActivity
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.getValue
 
 class imageViewerActivity : AppCompatActivity(){
 
+    private val albumViewModel : AlbumViewModel by viewModels()
 
     private lateinit var Adatper : ImagePagerAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,7 +64,7 @@ class imageViewerActivity : AppCompatActivity(){
         val viewpager2= findViewById<ViewPager2>(R.id.viewpager)
 
 
-        findViewById<ImageButton>(R.id.imageButton7).setOnClickListener {
+        findViewById<View>(R.id.materialButton2).setOnClickListener {
             val intent = Intent(this@imageViewerActivity, searchActivity::class.java)
             intent.putExtra("uri",Adatper.peek(viewpager2.currentItem)?.uri.toString())
             startActivity(intent)
@@ -72,6 +79,16 @@ class imageViewerActivity : AppCompatActivity(){
 
         val tappedPosition = intent.getIntExtra("pos",0)
         val isFromSearch = intent.getBooleanExtra("from_search",false)
+
+        Adatper.addOnPagesUpdatedListener {
+            lifecycleScope.launch {
+                findViewById<View>(R.id.materialButton).setOnClickListener {
+                    val currentItem = Adatper.peek(viewpager2.currentItem)
+                    AddToAlbumBottomSheet(currentItem?.uri.toString()).show(supportFragmentManager,"")
+                }
+            }
+        }
+
 
 
         lifecycleScope.launch {

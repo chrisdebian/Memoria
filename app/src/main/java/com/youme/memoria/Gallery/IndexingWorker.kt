@@ -9,6 +9,7 @@ import android.os.BatteryManager
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
@@ -39,9 +40,10 @@ class IndexingWorker(
         try {
             val existing: HashSet<String> =
                 repo.alreadyExistsList().mapTo(HashSet()) { it.uri }
-            val all = repo.getImagesToIndex(context)
-            val toProcess = all.filter { it.toString() !in existing }
-            var done = existing.size
+            val all = repo.getImagesToIndex(context).map { it.toString() }
+            val toProcess = all.filter { it !in existing }.map { it.toUri() }
+            var done = existing.count { it in all }
+
 
             setProgress(workDataOf(KEY_DONE to done, KEY_TOTAL to all.size, KEY_ETA to 0L))
 

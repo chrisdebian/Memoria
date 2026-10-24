@@ -53,6 +53,8 @@ interface PhotoDao {
     @Query("delete from photo where uri in (:toDelete)")
     suspend fun deleteWhereUriNotIn(toDelete : List<String>)
 
+    @Query("SELECT EXISTS(SELECT 1 FROM photo WHERE uri = :uri)")
+    suspend fun photoExists(uri: String): Boolean
 
     @Query("""
     SELECT DISTINCT cameraMake || ' ' || cameraModel AS camera FROM photo 
@@ -67,6 +69,7 @@ interface PhotoDao {
     AND (:foldersEmpty = 1 OR folderPath IN (:folders))
     AND (:camera IS NULL OR cameraModel = :camera)
 """)
+
     suspend fun getFiltered(
         startDate: Long?,
         endDate: Long?,
@@ -101,6 +104,9 @@ interface AlbumDao{
     suspend fun removeAlbumPhotos(photoUris: List<String>,albumId: String)
 
 
+    @Query("select * from album_photo")
+    suspend fun albumPhotoUris() : List<AlbumPhotoEntity>
+
 
     @Query("DELETE FROM album_photo WHERE albumId in (:albumIds)")
     suspend fun deleteAllAlbumPhotos(albumIds: List<String>)
@@ -109,6 +115,8 @@ interface AlbumDao{
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPhotos(photos: List<AlbumPhotoEntity>)
+
+
 
 
 
@@ -160,7 +168,8 @@ data class AlbumsList(
     val albumId: String,
     val name : String,
     val images : List<Uri>,
-    val size : Int = 0
+    val size : Int = 0,
+    val containsImage : Boolean  = false
 )
 
 data class FolderCount(
